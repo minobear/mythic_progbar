@@ -4,7 +4,7 @@ $('document').ready(function() {
     MythicProgBar.Progress = function(data) {
         $(".progress-container").css({"display":"block"});
         $("#progress-label").text(data.label);
-        $("#progress-bar").stop().css({"width": 0, "background-color": "#ff5f00"}).animate({
+        $("#progress-bar").stop().css({"width": 0, "background-color": "#006eff"}).animate({
           width: '100%'
         }, {
           duration: parseInt(data.duration),
