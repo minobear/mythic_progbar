@@ -82,8 +82,13 @@ AddEventHandler("mythic_progbar:client:actionCleanup", function()
     local ped = PlayerPedId()
     ClearPedTasks(ped)
     StopAnimTask(ped, mythic_action.animDict, mythic_action.anim, 1.0)
-    DetachEntity(NetToObj(prop_net), 1, 1)
-    DeleteEntity(NetToObj(prop_net))
+
+    local obj = not (prop_net == 0 or prop_net == nil) and NetToObj(prop_net) or 0
+    if DoesEntityExist(obj) then
+        DetachEntity(obj, 1, 1)
+        DeleteEntity(obj)
+    end
+
     prop_net = nil
 end)
 
