@@ -18,15 +18,36 @@ To use, you just need to add a TriggerEvent into your client script where you're
             disableCombat = true,
         },
         animation = {
-            animDict = "missheistdockssetup1clipboard@idle_a",
-            anim = "idle_a",
+            {
+                animDict = "amb@medic@standing@kneel@base",
+                anim = "base",
+                flags = 1,
+            },
+            {
+                animDict = "missheistdockssetup1clipboard@base",
+                anim = "base",
+                flags = 49,
+            },
         },
         prop = {
-            model = "prop_paper_bag_small",
+            {
+                model = "p_amb_clipboard_01",
+                bone = 18905,
+                coords = { x = 0.10, y = 0.02, z = 0.08 },
+                rotation = { x = -80.0, y = 0.0, z = 0.0 },
+            },
+            {
+                model = "prop_pencil_01",
+                bone = 58866,
+                coords = { x = 0.12, y = 0.0, z = 0.001 },
+                rotation = { x = -150.0, y = 0.0, z = 0.0 },
+            },
         }
-    }, function(status)
-        if not status then
-            -- Do Something If Event Wasn't Cancelled
+    }, function(cancelled)
+        if not cancelled then
+            -- Do Something If Action Wasn't Cancelled
+        else
+            -- Do Something If Action Was Cancelled
         end
     end)
 ```
