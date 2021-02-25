@@ -11,13 +11,14 @@ mythic_action = {
         disableCombat = false,
     },
     animation = {
-        animDict = nil,
-        anim = nil,
-        flags = 0,
-        task = nil,
+        {animDict = nil, anim = nil, flags = 0, task = nil},
     },
     prop = {
-        model = nil,
+        {
+            model = nil, bone = nil,
+            coords = { x = 0.0, y = 0.0, z = 0.0 },
+            rotation = { x = 0.0, y = 0.0, z = 0.0 }
+        },
     },
 }
 
@@ -92,42 +93,61 @@ Citizen.CreateThread(function()
         if isDoingAction then
             if not isAnim then
                 if mythic_action.animation ~= nil then
-                    if mythic_action.animation.task ~= nil then
-                        TaskStartScenarioInPlace(PlayerPedId(), mythic_action.animation.task, 0, true)
-                    elseif mythic_action.animation.animDict ~= nil and mythic_action.animation.anim ~= nil then
-                        if mythic_action.animation.flags == nil then
-                            mythic_action.animation.flags = 1
+                    for k,v in ipairs(mythic_action.animation) do
+                        if v.task ~= nil then
+                            TaskStartScenarioInPlace(PlayerPedId(), v.task, 0, true)
+                        elseif v.animDict ~= nil and v.anim ~= nil then
+                            if v.flags == nil then
+                                v.flags = 1
+                            end
+    
+                            local player = PlayerPedId()
+                            if ( DoesEntityExist( player ) and not IsEntityDead( player )) then
+                                loadAnimDict( v.animDict )
+                                TaskPlayAnim( player, v.animDict, v.anim, 3.0, 1.0, -1, v.flags, 0, 0, 0, 0 )     
+                            end
+                        else
+                            TaskStartScenarioInPlace(PlayerPedId(), 'PROP_HUMAN_BUM_BIN', 0, true)
                         end
-
-                        local player = PlayerPedId()
-                        if ( DoesEntityExist( player ) and not IsEntityDead( player )) then
-                            loadAnimDict( mythic_action.animation.animDict )
-                            TaskPlayAnim( player, mythic_action.animation.animDict, mythic_action.animation.anim, 3.0, 1.0, -1, mythic_action.animation.flags, 0, 0, 0, 0 )     
-                        end
-                    else
-                        TaskStartScenarioInPlace(PlayerPedId(), 'PROP_HUMAN_BUM_BIN', 0, true)
-                    end
+                    end 
                 end
 
                 isAnim = true
             end
-            if not isProp and mythic_action.prop ~= nil and mythic_action.prop.model ~= nil then
-                RequestModel(mythic_action.prop.model)
 
-                while not HasModelLoaded(GetHashKey(mythic_action.prop.model)) do
-                    Citizen.Wait(0)
+            if not isProp and mythic_action.prop ~= nil then
+                for k, v in ipairs(mythic_action.prop) do
+                    if v.model ~= nil then
+                        RequestModel(v.model)
+
+                        while not HasModelLoaded(GetHashKey(v.model)) do
+                            Citizen.Wait(0)
+                        end
+
+                        local pCoords = GetOffsetFromEntityInWorldCoords(GetPlayerPed(PlayerId()), 0.0, 0.0, 0.0)
+                        local modelSpawn = CreateObject(GetHashKey(v.model), pCoords.x, pCoords.y, pCoords.z, true, true, true)
+
+                        local netid = ObjToNet(modelSpawn)
+                        SetNetworkIdExistsOnAllMachines(netid, true)
+                        NetworkSetNetworkIdDynamic(netid, true)
+                        SetNetworkIdCanMigrate(netid, false)
+                        if v.bone == nil then
+                            v.bone = 60309
+                        end
+
+                        if v.coords == nil then
+                            v.coords = { x = 0.0, y = 0.0, z = 0.0 }
+                        end
+
+                        if v.rotation == nil then
+                            v.rotation = { x = 0.0, y = 0.0, z = 0.0 }
+                        end
+
+                        AttachEntityToEntity(modelSpawn, PlayerPedId(), GetPedBoneIndex(PlayerPedId(), v.bone), v.coords.x, v.coords.y, v.coords.z, v.rotation.x, v.rotation.y, v.rotation.z, 1, 1, 0, 1, 0, 1)
+                        prop_net = netid
+                    end
                 end
-
-                local pCoords = GetOffsetFromEntityInWorldCoords(GetPlayerPed(PlayerId()), 0.0, 0.0, 0.0)
-                local modelSpawn = CreateObject(GetHashKey(mythic_action.prop.model), pCoords.x, pCoords.y, pCoords.z, true, true, true)
-
-                local netid = ObjToNet(modelSpawn)
-                SetNetworkIdExistsOnAllMachines(netid, true)
-                NetworkSetNetworkIdDynamic(netid, true)
-                SetNetworkIdCanMigrate(netid, false)
-                AttachEntityToEntity(modelSpawn, GetPlayerPed(PlayerId()), GetPedBoneIndex(GetPlayerPed(PlayerId()), 60309), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1, 1, 0, 1, 0, 1)
-                prop_net = netid
-
+                
                 isProp = true
             end
 
